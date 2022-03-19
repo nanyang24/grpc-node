@@ -50,15 +50,17 @@ jobs:
             # branch_name=`echo $line | grep -oE "(from murgatroid99/).+$" | sed -n 's/^from murgatroid99\///p'`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             echo 3
-
-            if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
-              echo "work"
-            fi
-            
+            echo 33
+            ticket=$(echo $line | grep -oP "(?<=\/)(PAY-\d+)") || false
             echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
             echo 5
 
+            if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
+              ticket=$(echo $line | grep -oP "(?<=\/)(PAY-\d+)")
+              changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
+            fi
+            echo 6
           done <<< $logs
 
           echo "Changelog:"
