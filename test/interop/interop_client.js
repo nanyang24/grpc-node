@@ -484,7 +484,7 @@ function getApplicationCreds(scope, callback) {
 }
 
 function getOauth2Creds(scope, callback) {
-  (new GoogleAuth({scopes: scope})).getAccessToken().then((token) => {
+  (new GoogleAuth()).getAccessToken().then((token) => {
     var updateMd = function(service_url, callback) {
       var metadata = new grpc.Metadata();
       metadata.add('authorization', 'Bearer ' + token);

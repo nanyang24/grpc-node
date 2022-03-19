@@ -136,9 +136,6 @@ export function mapProxyName(
   if ((options['grpc.enable_http_proxy'] ?? 1) === 0) {
     return noProxyResult;
   }
-  if (target.scheme === 'unix') {
-    return noProxyResult;
-  }
   const proxyInfo = getProxyInfo();
   if (!proxyInfo.address) {
     return noProxyResult;

@@ -31,13 +31,13 @@ import {
   PickResultType,
   UnavailablePicker,
 } from './picker';
+import { Subchannel, ConnectivityStateListener } from './subchannel';
 import {
   SubchannelAddress,
   subchannelAddressToString,
 } from './subchannel-address';
 import * as logging from './logging';
 import { LogVerbosity } from './constants';
-import { SubchannelInterface, ConnectivityStateListener } from './subchannel-interface';
 
 const TRACER_NAME = 'pick_first';
 
@@ -77,7 +77,7 @@ export class PickFirstLoadBalancingConfig implements LoadBalancingConfig {
  * picked subchannel.
  */
 class PickFirstPicker implements Picker {
-  constructor(private subchannel: SubchannelInterface) {}
+  constructor(private subchannel: Subchannel) {}
 
   pick(pickArgs: PickArgs): CompletePickResult {
     return {
@@ -107,7 +107,7 @@ export class PickFirstLoadBalancer implements LoadBalancer {
    * The list of subchannels this load balancer is currently attempting to
    * connect to.
    */
-  private subchannels: SubchannelInterface[] = [];
+  private subchannels: Subchannel[] = [];
   /**
    * The current connectivity state of the load balancer.
    */
@@ -124,7 +124,7 @@ export class PickFirstLoadBalancer implements LoadBalancer {
    * and only if the load balancer's current state is READY. In that case,
    * the subchannel's current state is also READY.
    */
-  private currentPick: SubchannelInterface | null = null;
+  private currentPick: Subchannel | null = null;
   /**
    * Listener callback attached to each subchannel in the `subchannels` list
    * while establishing a connection.
@@ -157,7 +157,7 @@ export class PickFirstLoadBalancer implements LoadBalancer {
       [ConnectivityState.TRANSIENT_FAILURE]: 0,
     };
     this.subchannelStateListener = (
-      subchannel: SubchannelInterface,
+      subchannel: Subchannel,
       previousState: ConnectivityState,
       newState: ConnectivityState
     ) => {
@@ -219,7 +219,7 @@ export class PickFirstLoadBalancer implements LoadBalancer {
       }
     };
     this.pickedSubchannelStateListener = (
-      subchannel: SubchannelInterface,
+      subchannel: Subchannel,
       previousState: ConnectivityState,
       newState: ConnectivityState
     ) => {
@@ -310,7 +310,7 @@ export class PickFirstLoadBalancer implements LoadBalancer {
     }, CONNECTION_DELAY_INTERVAL_MS);
   }
 
-  private pickSubchannel(subchannel: SubchannelInterface) {
+  private pickSubchannel(subchannel: Subchannel) {
     trace('Pick subchannel with address ' + subchannel.getAddress());
     if (this.currentPick !== null) {
       this.currentPick.unref();

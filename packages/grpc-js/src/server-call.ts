@@ -238,7 +238,7 @@ export class ServerWritableStreamImpl<RequestType, ResponseType>
       this.trailingMetadata = metadata;
     }
 
-    return super.end();
+    super.end();
   }
 }
 
@@ -285,7 +285,7 @@ export class ServerDuplexStreamImpl<RequestType, ResponseType>
       this.trailingMetadata = metadata;
     }
 
-    return super.end();
+    super.end();
   }
 }
 
@@ -295,6 +295,7 @@ ServerDuplexStreamImpl.prototype._write =
   ServerWritableStreamImpl.prototype._write;
 ServerDuplexStreamImpl.prototype._final =
   ServerWritableStreamImpl.prototype._final;
+ServerDuplexStreamImpl.prototype.end = ServerWritableStreamImpl.prototype.end;
 
 // Unary response callback signature.
 export type sendUnaryData<ResponseType> = (

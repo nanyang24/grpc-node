@@ -26,7 +26,7 @@ import { ConnectivityState } from './connectivity-state';
 import { ConfigSelector, createResolver, Resolver } from './resolver';
 import { ServiceError } from './call';
 import { Picker, UnavailablePicker, QueuePicker } from './picker';
-import { BackoffOptions, BackoffTimeout } from './backoff-timeout';
+import { BackoffTimeout } from './backoff-timeout';
 import { Status } from './constants';
 import { StatusObject } from './call-stream';
 import { Metadata } from './metadata';
@@ -248,10 +248,7 @@ export class ResolvingLoadBalancer implements LoadBalancer {
       },
       channelOptions
     );
-    const backoffOptions: BackoffOptions = {
-      initialDelay: channelOptions['grpc.initial_reconnect_backoff_ms'],
-      maxDelay: channelOptions['grpc.max_reconnect_backoff_ms'],
-    };
+
     this.backoffTimeout = new BackoffTimeout(() => {
       if (this.continueResolving) {
         this.updateResolution();
@@ -259,7 +256,7 @@ export class ResolvingLoadBalancer implements LoadBalancer {
       } else {
         this.updateState(this.latestChildState, this.latestChildPicker);
       }
-    }, backoffOptions);
+    });
     this.backoffTimeout.unref();
   }
 
@@ -312,7 +309,7 @@ export class ResolvingLoadBalancer implements LoadBalancer {
   updateAddressList(
     addressList: SubchannelAddress[],
     lbConfig: LoadBalancingConfig | null
-  ): never {
+  ) {
     throw new Error('updateAddressList not supported on ResolvingLoadBalancer');
   }
 

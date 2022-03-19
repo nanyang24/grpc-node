@@ -37,7 +37,6 @@ import {
   subchannelAddressToString,
 } from './subchannel-address';
 import { SubchannelRef, ChannelzTrace, ChannelzChildrenTracker, SubchannelInfo, registerChannelzSubchannel, ChannelzCallTracker, SocketInfo, SocketRef, unregisterChannelzRef, registerChannelzSocket, TlsInfo } from './channelz';
-import { ConnectivityStateListener } from './subchannel-interface';
 
 const clientVersion = require('../../package.json').version;
 
@@ -54,6 +53,12 @@ const BACKOFF_JITTER = 0.2;
  * to calculate it */
 const KEEPALIVE_MAX_TIME_MS = ~(1 << 31);
 const KEEPALIVE_TIMEOUT_MS = 20000;
+
+export type ConnectivityStateListener = (
+  subchannel: Subchannel,
+  previousState: ConnectivityState,
+  newState: ConnectivityState
+) => void;
 
 export interface SubchannelCallStatsTracker {
   addMessageSent(): void;
@@ -943,9 +948,5 @@ export class Subchannel {
 
   getChannelzRef(): SubchannelRef {
     return this.channelzRef;
-  }
-
-  getRealSubchannel(): this {
-    return this;
   }
 }
