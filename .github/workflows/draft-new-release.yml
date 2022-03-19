@@ -28,6 +28,7 @@ jobs:
           echo "building Changelog"
 
           changedLog=""
+          changedLogForSlack=""
           logs=`git log --format="%an, %s" origin/master..HEAD | grep "Merge pull request"`
 
           while read -r line;
@@ -35,32 +36,29 @@ jobs:
             echo "line: $line"
 
             author=`echo $line | grep -oP "^[a-zA-Z0-9\s_\-]+"`
-            echo 1
             pull_number=`echo $line | grep -oP "(?<=#)\d+"`
-            echo 2
-            # branch_name=`echo $line | grep -oE "(from murgatroid99/).+$" | sed -n 's/^from murgatroid99\///p'`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
-            echo 3
-            echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
-            echo 5
-
+            changedLogForSlack+=$'\n'"- Author: $author <Branch: $branch_name PR: <https://github.com/${{ github.repository }}/pull/$pull_number|$pull_number>"
             if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
               ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
               changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
+              changedLogForSlack+=" Ticket: <https://mcoproduct.atlassian.net/browse/$ticket|$ticket>"
             fi
-
-            echo 6
           done <<< $logs
 
           echo "Changelog:"
           echo $changedLog
-          
+
           # the set-output notation only works on single line input
           # echo "::set-output name=changes::$changedLog"
 
           echo "changedLog<<EOF" >> $GITHUB_ENV
           echo "$changedLog" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "changedLogForSlack<<EOF" >> $GITHUB_ENV
+          echo "$changedLogForSlack" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: Update Changelog.md
@@ -129,13 +127,11 @@ jobs:
           SLACK_CHANNEL: make-world-better
           SLACK_USERNAME: "FE Deployment"
           SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
-          SLACK_TITLE: "The new release has been drafted:`"
+          SLACK_TITLE: "The new release has been drafted:"
           SLACK_MESSAGE: |
-            `${{ github.event.repository.name }}`: `${{ github.event.inputs.version }}
+            `${{ github.event.repository.name }}`: `${{ github.event.inputs.version }}`
             ChangeLog:
-            ```
-            ${{ env.changedLog }}
-            ```
+            ${{ env.changedLogForSlack }}
           SLACK_FOOTER: ""
-          MSG_MINIMAL: true
+          MSG_MINIMAL: false
           SLACK_LINK_NAMES: true
