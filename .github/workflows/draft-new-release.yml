@@ -17,14 +17,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: update bash
-        run: |
-          wget https://ftp.gnu.org/gnu/bash/bash-5.1.8.tar.gz
-          tar xvf bash-5.1.8.tar.gz
-          cd bash-5.1.8
-          ./configure
-          make
-          sudo make install
+      # - name: update bash
+      #   run: |
+      #     wget https://ftp.gnu.org/gnu/bash/bash-5.1.8.tar.gz
+      #     tar xvf bash-5.1.8.tar.gz
+      #     cd bash-5.1.8
+      #     ./configure
+      #     make
+      #     sudo make install
 
       - name: Create release branch
         run: git checkout -b release-version/${{ github.event.inputs.version }}
@@ -50,6 +50,8 @@ jobs:
             # branch_name=`echo $line | grep -oE "(from murgatroid99/).+$" | sed -n 's/^from murgatroid99\///p'`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             echo 3
+            bash --version
+            echo $(bash --version)
             ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
             echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
