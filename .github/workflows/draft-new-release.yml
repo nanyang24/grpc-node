@@ -39,7 +39,7 @@ jobs:
             pull_number=`echo $line | grep -oP "(?<=#)\d+"`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
-            changedLogForSlack+=$'\n'"• Author: \`$author\` Branch: \`$branch_name\` PR: <https://github.com/${{ github.repository }}/pull/$pull_number|$pull_number>"
+            changedLogForSlack+=$'\n'" •  Author: \`$author\` Branch: \`$branch_name\` PR: <https://github.com/${{ github.repository }}/pull/$pull_number|$pull_number>"
             if [[ $(echo $line | grep -oiP "(?<=\/)(PAY-\d+)") != "" ]]; then
               ticket=`echo $line | grep -oiP "(?<=\/)(PAY-\d+)"`
               changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
