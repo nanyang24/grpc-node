@@ -1,0 +1,68 @@
+name: "Tag Release"
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+jobs:
+  tag_release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "Github Action"
+          git config user.email no-reply@gtihub.com
+      - name: Setup release version
+        # get version name from VERSION file
+        id: setup-version
+        run: |
+          versionName=`sed 's/.fr.*//' VERSION`
+          export VERSION_NAME=$versionName
+          echo "::set-output name=version::$VERSION_NAME"
+      - name: Extract release notes
+        id: extract_release_notes
+        uses: ffurrer2/extract-release-notes@v1
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          tag_name: ${{ steps.setup-version.outputs.version }}
+          release_name: v${{ steps.setup-version.outputs.version }}
+          body: ${{ steps.extract_release_notes.outputs.release_notes }}
+          draft: false
+          prerelease: false
+
+      - name: Slack notify
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
+          SLACK_CHANNEL: make-world-better
+          SLACK_USERNAME: "FE Deployment"
+          SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
+          SLACK_TITLE: 🚀 `${{ github.event.repository.name }}` Version {{ steps.setup-version.outputs.version }} is being published to Production
+          SLACK_MESSAGE: ${{ steps.extract_release_notes.outputs.release_notes }}
+          SLACK_FOOTER: ""
+          MSG_MINIMAL: true
+          SLACK_LINK_NAMES: true
+
+
+      # Automation in the Future
+      - name: Merge master into develop branch
+        id: create-pull-request
+        uses: thomaseizinger/create-pull-request@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: master
+          base: develop
+          title: Merge master into develop branch
+          body: |
+            This PR merges the master branch back into develop.
+            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the develop branch.
