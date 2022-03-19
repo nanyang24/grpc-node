@@ -42,12 +42,12 @@ jobs:
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             echo 3
             echo 4
-            changedLog+="- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number \n"
+            changedLog+="- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"$'\n'
             echo 5
 
             if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
               ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
-              changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket) \n"
+              changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"$'\n'
             fi
 
             echo 6
