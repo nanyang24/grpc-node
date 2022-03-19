@@ -17,6 +17,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: update bash
+        run: |
+          wget https://ftp.gnu.org/gnu/bash/bash-5.1.8.tar.gz
+          tar xvf bash-5.1.8.tar.gz
+          cd bash-5.1.8
+          ./configure
+          make
+          sudo make install
+
       - name: Create release branch
         run: git checkout -b release-version/${{ github.event.inputs.version }}
 
