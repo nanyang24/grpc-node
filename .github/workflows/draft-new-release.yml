@@ -107,7 +107,7 @@ jobs:
             Merging this PR will create a GitHub release and upload any assets that are created as part of the release build.
 
             ChangeLog:
-            ${{ steps.logs.outputs.changes }}
+            ${{ env.changedLog }}
 
       # - name: Slack notify (PR)
       #   uses: rtCamp/action-slack-notify@master
@@ -134,7 +134,7 @@ jobs:
       #       `${{ github.event.repository.name }}`: `${{ github.event.inputs.version }}
       #       ChangeLog:
       #       ```
-      #       ${{ steps.logs.outputs.changes }}
+      #       ${{ env.changedLog }}
       #       ```
       #     SLACK_FOOTER: ""
       #     MSG_MINIMAL: true
