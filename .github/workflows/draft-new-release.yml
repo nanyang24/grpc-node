@@ -50,9 +50,7 @@ jobs:
             # branch_name=`echo $line | grep -oE "(from murgatroid99/).+$" | sed -n 's/^from murgatroid99\///p'`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             echo 3
-            echo $line | grep -oP "(?<=\/)(PAY-\d+)"
-            echo 33
-            ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
+            ticket=$(echo $line | grep -oP "(?<=\/)(PAY-\d+)") || false
             echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
             echo 5
