@@ -38,7 +38,7 @@ jobs:
 
           changedLog=""
           logs=`git log --format="%an, %s" origin/master..HEAD | grep "Merge pull request"`
-          
+
           while read -r line;
           do
             echo "line: $line"
@@ -50,14 +50,16 @@ jobs:
             # branch_name=`echo $line | grep -oE "(from murgatroid99/).+$" | sed -n 's/^from murgatroid99\///p'`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             echo 3
-            bash --version
-            echo $(bash --version)
-            grep --v
-            echo $(grep --v)
+            echo $line | grep -oP "(?<=\/)(PAY-\d+)"
+            echo 33
             ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
             echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
             echo 5
+
+            if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
+              echo "work"
+            fi
 
             if [[ $ticket != "" ]]; then
             changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
@@ -126,7 +128,7 @@ jobs:
       #     SLACK_FOOTER: ""
       #     MSG_MINIMAL: true
       #     SLACK_LINK_NAMES: true
-      
+
       # - name: Slack notify (ChangeLog)
       #   uses: rtCamp/action-slack-notify@master
       #   env:
