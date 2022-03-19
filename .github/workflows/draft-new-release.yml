@@ -52,6 +52,8 @@ jobs:
             echo 3
             bash --version
             echo $(bash --version)
+            grep --v
+            echo $(grep --v)
             ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
             echo 4
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
