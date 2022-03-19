@@ -115,7 +115,9 @@ jobs:
           SLACK_USERNAME: "FE Deployment"
           SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
           SLACK_TITLE: "The new release has been drafted: `${{ github.event.inputs.version }}`"
-          SLACK_MESSAGE: "`${{ github.actor }}` drafted new release `${{ github.event.inputs.version }}` for `${{ github.event.repository.name }}`, Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe "
+          SLACK_MESSAGE: |
+            `${{ github.actor }}` drafted new release `${{ github.event.inputs.version }}` for `${{ github.event.repository.name }}`
+            Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe "
           SLACK_FOOTER: ""
           MSG_MINIMAL: true
           SLACK_LINK_NAMES: true
