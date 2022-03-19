@@ -39,9 +39,9 @@ jobs:
             pull_number=`echo $line | grep -oP "(?<=#)\d+"`
             branch_name=`echo $line | grep -oP "(?<=from ).+" | grep -oP "(?<=\/).+"`
             changedLog+=$'\n'"- Author: $author <br>Branch: $branch_name <br>PR: https://github.com/${{ github.repository }}/pull/$pull_number"
-            changedLogForSlack+=$'\n'"- Author: \`$author\` Branch: \`$branch_name\` PR: <https://github.com/${{ github.repository }}/pull/$pull_number|$pull_number>"
-            if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
-              ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
+            changedLogForSlack+=$'\n'"• Author: \`$author\` Branch: \`$branch_name\` PR: <https://github.com/${{ github.repository }}/pull/$pull_number|$pull_number>"
+            if [[ $(echo $line | grep -oiP "(?<=\/)(PAY-\d+)") != "" ]]; then
+              ticket=`echo $line | grep -oiP "(?<=\/)(PAY-\d+)"`
               changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
               changedLogForSlack+=" Ticket: <https://mcoproduct.atlassian.net/browse/$ticket|$ticket>"
             fi
@@ -117,7 +117,7 @@ jobs:
           SLACK_TITLE: "The new release has been drafted: `${{ github.event.inputs.version }}`"
           SLACK_MESSAGE: |
             `${{ github.actor }}` drafted new release `${{ github.event.inputs.version }}` for `${{ github.event.repository.name }}`
-            Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe "
+            Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe
           SLACK_FOOTER: ""
           MSG_MINIMAL: true
           SLACK_LINK_NAMES: true
