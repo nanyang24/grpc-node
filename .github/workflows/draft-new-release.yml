@@ -34,7 +34,7 @@ jobs:
           do
             echo "line: $line"
 
-            author=`echo $line | grep -oE "^[a-zA-Z0-9\s_\-]+"`
+            author=`echo $line | grep -oP "^[a-zA-Z0-9\s_\-]+"`
             echo 1
             pull_number=`echo $line | grep -oP "(?<=#)\d+"`
             echo 2
@@ -109,33 +109,33 @@ jobs:
             ChangeLog:
             ${{ env.changedLog }}
 
-      # - name: Slack notify (PR)
-      #   uses: rtCamp/action-slack-notify@master
-      #   env:
-      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PR }}
-      #     SLACK_CHANNEL: playground-for-aaron
-      #     SLACK_USERNAME: "FE Deployment"
-      #     SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
-      #     SLACK_TITLE: "The new release has been drafted: `${{ github.event.inputs.version }}`"
-      #     SLACK_MESSAGE: "`${{ github.actor }}` drafted new release `${{ github.event.inputs.version }}` for `${{ github.event.repository.name }}`, Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe "
-      #     SLACK_FOOTER: ""
-      #     MSG_MINIMAL: true
-      #     SLACK_LINK_NAMES: true
+      - name: Slack notify (PR)
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PR }}
+          SLACK_CHANNEL: make-world-better
+          SLACK_USERNAME: "FE Deployment"
+          SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
+          SLACK_TITLE: "The new release has been drafted: `${{ github.event.inputs.version }}`"
+          SLACK_MESSAGE: "`${{ github.actor }}` drafted new release `${{ github.event.inputs.version }}` for `${{ github.event.repository.name }}`, Please help to review <https://github.com/${{ github.repository }}/pull/${{ steps.create-pull-request.outputs.number }}|Pull Request>  cc @crypto_pay_fe "
+          SLACK_FOOTER: ""
+          MSG_MINIMAL: true
+          SLACK_LINK_NAMES: true
 
-      # - name: Slack notify (ChangeLog)
-      #   uses: rtCamp/action-slack-notify@master
-      #   env:
-      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
-      #     SLACK_CHANNEL: playground-for-aaron #will change to pay-fighter
-      #     SLACK_USERNAME: "FE Deployment"
-      #     SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
-      #     SLACK_TITLE: "The new release has been drafted:`"
-      #     SLACK_MESSAGE: |
-      #       `${{ github.event.repository.name }}`: `${{ github.event.inputs.version }}
-      #       ChangeLog:
-      #       ```
-      #       ${{ env.changedLog }}
-      #       ```
-      #     SLACK_FOOTER: ""
-      #     MSG_MINIMAL: true
-      #     SLACK_LINK_NAMES: true
+      - name: Slack notify (ChangeLog)
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
+          SLACK_CHANNEL: make-world-better
+          SLACK_USERNAME: "FE Deployment"
+          SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
+          SLACK_TITLE: "The new release has been drafted:`"
+          SLACK_MESSAGE: |
+            `${{ github.event.repository.name }}`: `${{ github.event.inputs.version }}
+            ChangeLog:
+            ```
+            ${{ env.changedLog }}
+            ```
+          SLACK_FOOTER: ""
+          MSG_MINIMAL: true
+          SLACK_LINK_NAMES: true

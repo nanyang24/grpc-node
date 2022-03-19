@@ -39,18 +39,18 @@ jobs:
           draft: false
           prerelease: false
 
-      # - name: Slack notify
-      #   uses: rtCamp/action-slack-notify@master
-      #   env:
-      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
-      #     SLACK_CHANNEL: playground-for-aaron
-      #     SLACK_USERNAME: "FE Deployment"
-      #     SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
-      #     SLACK_TITLE: 🚀 `${{ github.event.repository.name }}` Version {{ steps.setup-version.outputs.version }} is being published to Production
-      #     SLACK_MESSAGE: ${{ steps.extract_release_notes.outputs.release_notes }}
-      #     SLACK_FOOTER: ""
-      #     MSG_MINIMAL: true
-      #     SLACK_LINK_NAMES: true
+      - name: Slack notify
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
+          SLACK_CHANNEL: make-world-better
+          SLACK_USERNAME: "FE Deployment"
+          SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
+          SLACK_TITLE: 🚀 `${{ github.event.repository.name }}` Version {{ steps.setup-version.outputs.version }} is being published to Production
+          SLACK_MESSAGE: ${{ steps.extract_release_notes.outputs.release_notes }}
+          SLACK_FOOTER: ""
+          MSG_MINIMAL: true
+          SLACK_LINK_NAMES: true
 
 
       # Automation in the Future
