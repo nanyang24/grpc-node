@@ -57,7 +57,7 @@ jobs:
             echo 5
 
             if [[ $(echo $line | grep -oP "(?<=\/)(PAY-\d+)") != "" ]]; then
-              ticket=$(echo $line | grep -oP "(?<=\/)(PAY-\d+)")
+              ticket=`echo $line | grep -oP "(?<=\/)(PAY-\d+)"`
               changedLog+=" <br>Ticket: [$ticket](https://mcoproduct.atlassian.net/browse/$ticket)"
             fi
             echo 6
