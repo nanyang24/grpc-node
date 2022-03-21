@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          commitish: ${{ github.event.pull_request.merge_commit_sha }}
           tag_name: ${{ steps.setup-version.outputs.version }}
           release_name: v${{ steps.setup-version.outputs.version }}
           body: ${{ steps.extract_release_notes.outputs.release_notes }}
@@ -46,8 +46,8 @@ jobs:
           SLACK_CHANNEL: make-world-better
           SLACK_USERNAME: "FE Deployment"
           SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
-          SLACK_TITLE: 🚀 `${{ github.event.repository.name }}` Version {{ steps.setup-version.outputs.version }} is being published to Production
-          SLACK_MESSAGE: ${{ steps.extract_release_notes.outputs.release_notes }}
+          SLACK_TITLE: 🚀 `${{ github.event.repository.name }}` Version ${{ steps.setup-version.outputs.version }} is being published to Production
+          SLACK_MESSAGE: Check out the <https://app.circleci.com/pipelines/github/${{ github.repository }}|Pipeline>
           SLACK_FOOTER: ""
           MSG_MINIMAL: true
           SLACK_LINK_NAMES: true
