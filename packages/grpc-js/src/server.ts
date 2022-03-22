@@ -149,6 +149,7 @@ export class Server {
   private options: ChannelOptions;
 
   // Channelz Info
+  private readonly channelzEnabled: boolean = true;
   private channelzRef: ServerRef;
   private channelzTrace = new ChannelzTrace();
   private callTracker = new ChannelzCallTracker();
@@ -157,9 +158,20 @@ export class Server {
 
   constructor(options?: ChannelOptions) {
     this.options = options ?? {};
-    this.channelzRef = registerChannelzServer(() => this.getChannelzInfo());
-    this.channelzTrace.addTrace('CT_INFO', 'Server created');
-    this.trace('Server constructed');
+    if (this.options['grpc.enable_channelz'] === 0) {
+      this.channelzEnabled = false;
+    }
+    if (this.channelzEnabled) {
+      this.channelzRef = registerChannelzServer(() => this.getChannelzInfo());
+      this.channelzTrace.addTrace('CT_INFO', 'Server created');
+      this.trace('Server constructed');
+    } else {
+      // Dummy channelz ref that will never be used
+      this.channelzRef = {
+        kind: 'server',
+        id: -1
+      };
+    }
   }
 
   private getChannelzInfo(): ServerInfo {
@@ -176,7 +188,7 @@ export class Server {
       const sessionInfo = this.sessions.get(session)!;
       const sessionSocket = session.socket;
       const remoteAddress = sessionSocket.remoteAddress ? stringToSubchannelAddress(sessionSocket.remoteAddress, sessionSocket.remotePort) : null;
-      const localAddress = stringToSubchannelAddress(sessionSocket.localAddress, sessionSocket.localPort);
+      const localAddress = sessionSocket.localAddress ? stringToSubchannelAddress(sessionSocket.localAddress!, sessionSocket.localPort) : null;
       let tlsInfo: TlsInfo | null;
       if (session.encrypted) {
         const tlsSocket: TLSSocket = sessionSocket as TLSSocket;
@@ -219,7 +231,7 @@ export class Server {
   }
   
 
-  addProtoService(): void {
+  addProtoService(): never {
     throw new Error('Not implemented. Use addService() instead');
   }
 
@@ -299,7 +311,7 @@ export class Server {
     });
   }
 
-  bind(port: string, creds: ServerCredentials): void {
+  bind(port: string, creds: ServerCredentials): never {
     throw new Error('Not implemented. Use bindAsync() instead');
   }
 
@@ -638,7 +650,9 @@ export class Server {
     if (this.started === true) {
       throw new Error('server is already started');
     }
-    this.channelzTrace.addTrace('CT_INFO', 'Starting');
+    if (this.channelzEnabled) {
+      this.channelzTrace.addTrace('CT_INFO', 'Starting');
+    }
     this.started = true;
   }
 
@@ -682,10 +696,15 @@ export class Server {
     }
   }
 
-  addHttp2Port(): void {
+  addHttp2Port(): never {
     throw new Error('Not yet implemented');
   }
 
+  /**
+   * Get the channelz reference object for this server. The returned value is
+   * garbage if channelz is disabled for this server.
+   * @returns 
+   */
   getChannelzRef() {
     return this.channelzRef;
   }
@@ -777,30 +796,36 @@ export class Server {
               channelzSessionInfo.lastMessageReceivedTimestamp = new Date();
             });
           }
-          const metadata: Metadata = call.receiveMetadata(headers) as Metadata;
+          const metadata = call.receiveMetadata(headers);
+          const encoding = (metadata.get('grpc-encoding')[0] as string | undefined) ?? 'identity';
+          metadata.remove('grpc-encoding');
+
           switch (handler.type) {
             case 'unary':
-              handleUnary(call, handler as UntypedUnaryHandler, metadata);
+              handleUnary(call, handler as UntypedUnaryHandler, metadata, encoding);
               break;
             case 'clientStream':
               handleClientStreaming(
                 call,
                 handler as UntypedClientStreamingHandler,
-                metadata
+                metadata,
+                encoding
               );
               break;
             case 'serverStream':
               handleServerStreaming(
                 call,
                 handler as UntypedServerStreamingHandler,
-                metadata
+                metadata,
+                encoding
               );
               break;
             case 'bidi':
               handleBidiStreaming(
                 call,
                 handler as UntypedBidiStreamingHandler,
-                metadata
+                metadata,
+                encoding
               );
               break;
             default:
@@ -841,12 +866,16 @@ export class Server {
 
       this.sessions.set(session, channelzSessionInfo);
       const clientAddress = session.socket.remoteAddress;
-      this.channelzTrace.addTrace('CT_INFO', 'Connection established by client ' + clientAddress);
-      this.sessionChildrenTracker.refChild(channelzRef);
+      if (this.channelzEnabled) {
+        this.channelzTrace.addTrace('CT_INFO', 'Connection established by client ' + clientAddress);
+        this.sessionChildrenTracker.refChild(channelzRef);
+      }
       session.on('close', () => {
-        this.channelzTrace.addTrace('CT_INFO', 'Connection dropped by client ' + clientAddress);
-        this.sessionChildrenTracker.unrefChild(channelzRef);
-        unregisterChannelzRef(channelzRef);
+        if (this.channelzEnabled) {
+          this.channelzTrace.addTrace('CT_INFO', 'Connection dropped by client ' + clientAddress);
+          this.sessionChildrenTracker.unrefChild(channelzRef);
+          unregisterChannelzRef(channelzRef);
+        }
         this.sessions.delete(session);
       });
     });
@@ -856,9 +885,10 @@ export class Server {
 async function handleUnary<RequestType, ResponseType>(
   call: Http2ServerCallStream<RequestType, ResponseType>,
   handler: UnaryHandler<RequestType, ResponseType>,
-  metadata: Metadata
+  metadata: Metadata,
+  encoding: string
 ): Promise<void> {
-  const request = await call.receiveUnaryMessage();
+  const request = await call.receiveUnaryMessage(encoding);
 
   if (request === undefined || call.cancelled) {
     return;
@@ -886,12 +916,14 @@ async function handleUnary<RequestType, ResponseType>(
 function handleClientStreaming<RequestType, ResponseType>(
   call: Http2ServerCallStream<RequestType, ResponseType>,
   handler: ClientStreamingHandler<RequestType, ResponseType>,
-  metadata: Metadata
+  metadata: Metadata,
+  encoding: string
 ): void {
   const stream = new ServerReadableStreamImpl<RequestType, ResponseType>(
     call,
     metadata,
-    handler.deserialize
+    handler.deserialize,
+    encoding
   );
 
   function respond(
@@ -915,9 +947,10 @@ function handleClientStreaming<RequestType, ResponseType>(
 async function handleServerStreaming<RequestType, ResponseType>(
   call: Http2ServerCallStream<RequestType, ResponseType>,
   handler: ServerStreamingHandler<RequestType, ResponseType>,
-  metadata: Metadata
+  metadata: Metadata,
+  encoding: string
 ): Promise<void> {
-  const request = await call.receiveUnaryMessage();
+  const request = await call.receiveUnaryMessage(encoding);
 
   if (request === undefined || call.cancelled) {
     return;
@@ -936,13 +969,15 @@ async function handleServerStreaming<RequestType, ResponseType>(
 function handleBidiStreaming<RequestType, ResponseType>(
   call: Http2ServerCallStream<RequestType, ResponseType>,
   handler: BidiStreamingHandler<RequestType, ResponseType>,
-  metadata: Metadata
+  metadata: Metadata,
+  encoding: string
 ): void {
   const stream = new ServerDuplexStreamImpl<RequestType, ResponseType>(
     call,
     metadata,
     handler.serialize,
-    handler.deserialize
+    handler.deserialize,
+    encoding
   );
 
   if (call.cancelled) {

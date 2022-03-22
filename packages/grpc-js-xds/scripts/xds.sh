@@ -48,13 +48,13 @@ git clone -b master --single-branch --depth=1 https://github.com/grpc/grpc.git
 
 grpc/tools/run_tests/helper_scripts/prep_xds.sh
 
-GRPC_NODE_TRACE=xds_client,xds_resolver,cds_balancer,eds_balancer,priority,weighted_target,round_robin,resolving_load_balancer,subchannel,keepalive,dns_resolver,fault_injection,http_filter \
+GRPC_NODE_TRACE=xds_client,xds_resolver,cds_balancer,eds_balancer,priority,weighted_target,round_robin,resolving_load_balancer,subchannel,keepalive,dns_resolver,fault_injection,http_filter,csds \
   GRPC_NODE_VERBOSITY=DEBUG \
   NODE_XDS_INTEROP_VERBOSITY=1 \
   python3 grpc/tools/run_tests/run_xds_tests.py \
-    --test_case="all,timeout,circuit_breaking,fault_injection" \
+    --test_case="all,timeout,circuit_breaking,fault_injection,csds" \
     --project_id=grpc-testing \
-    --source_image=projects/grpc-testing/global/images/xds-test-server-4 \
+    --source_image=projects/grpc-testing/global/images/xds-test-server-5 \
     --path_to_server_binary=/java_server/grpc-java/interop-testing/build/install/grpc-interop-testing/bin/xds-test-server \
     --gcp_suffix=$(date '+%s') \
     --verbose \
