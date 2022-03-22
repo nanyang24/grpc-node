@@ -1,4 +1,4 @@
-// Original file: deps/udpa/udpa/annotations/status.proto
+// Original file: deps/xds/udpa/annotations/status.proto
 
 import type { PackageVersionStatus as _udpa_annotations_PackageVersionStatus } from '../../udpa/annotations/PackageVersionStatus';
 

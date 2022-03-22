@@ -18,9 +18,10 @@
 import { experimental, logVerbosity, StatusObject } from "@grpc/grpc-js";
 import { EXPERIMENTAL_FAULT_INJECTION } from "../environment";
 import { RouteConfiguration__Output } from "../generated/envoy/config/route/v3/RouteConfiguration";
+import { Any__Output } from "../generated/google/protobuf/Any";
 import { validateOverrideFilter } from "../http-filter";
 import { CdsLoadBalancingConfig } from "../load-balancer-cds";
-import { Watcher, XdsStreamState } from "./xds-stream-state";
+import { HandleResponseResult, RejectedResourceEntry, ResourcePair, Watcher, XdsStreamState } from "./xds-stream-state";
 import ServiceConfig = experimental.ServiceConfig;
 
 const TRACER_NAME = 'xds_client';
@@ -172,35 +173,40 @@ export class RdsState implements XdsStreamState<RouteConfiguration__Output> {
     return true;
   }
 
-  handleMissingNames(allRouteConfigNames: Set<string>) {
-    for (const [routeConfigName, watcherList] of this.watchers.entries()) {
-      if (!allRouteConfigNames.has(routeConfigName)) {
-        for (const watcher of watcherList) {
-          watcher.onResourceDoesNotExist();
-        }
+  handleResponses(responses: ResourcePair<RouteConfiguration__Output>[], isV2: boolean): HandleResponseResult {
+    const validResponses: RouteConfiguration__Output[] = [];
+    let result: HandleResponseResult = {
+      accepted: [],
+      rejected: [],
+      missing: []
+    }
+    for (const {resource, raw} of responses) {
+      if (this.validateResponse(resource, isV2)) {
+        validResponses.push(resource);
+        result.accepted.push({
+          name: resource.name, 
+          raw: raw});
+      } else {
+        trace('RDS validation failed for message ' + JSON.stringify(resource));
+        result.rejected.push({
+          name: resource.name, 
+          raw: raw,
+          error: `Route validation failed for resource ${resource.name}`
+        });
       }
     }
-  }
-
-  handleResponses(responses: RouteConfiguration__Output[], isV2: boolean): string | null {
-    for (const message of responses) {
-      if (!this.validateResponse(message, isV2)) {
-        trace('RDS validation failed for message ' + JSON.stringify(message));
-        return 'RDS Error: Route validation failed';
-      }
-    }
-    this.latestResponses = responses;
+    this.latestResponses = validResponses;
     this.latestIsV2 = isV2;
     const allRouteConfigNames = new Set<string>();
-    for (const message of responses) {
+    for (const message of validResponses) {
       allRouteConfigNames.add(message.name);
       const watchers = this.watchers.get(message.name) ?? [];
       for (const watcher of watchers) {
         watcher.onValidUpdate(message, isV2);
       }
     }
-    trace('Received RDS response with route config names ' + Array.from(allRouteConfigNames));
-    return null;
+    trace('Received RDS response with route config names [' + Array.from(allRouteConfigNames) + ']');
+    return result;
   }
 
   reportStreamError(status: StatusObject): void {
