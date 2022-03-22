@@ -1,6 +1,6 @@
 {
   "name": "grpc-js-repository",
-  "version": "0.1.0",
+  "version": "1.4.46",
   "description": "Dummy package for the grpc-node repository",
   "private": true,
   "keywords": [],
