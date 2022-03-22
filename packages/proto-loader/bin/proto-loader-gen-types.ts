@@ -379,7 +379,7 @@ function generateMessageInterfaces(formatter: TextFormatter, messageType: Protob
   let usesLong: boolean = false;
   let seenDeps: Set<string> = new Set<string>();
   const childTypes = getChildMessagesAndEnums(messageType);
-  formatter.writeLine(`// Original file: ${messageType.filename}`);
+  formatter.writeLine(`// Original file: ${(messageType.filename ?? 'null')?.replace(/\\/g, '/')}`);
   formatter.writeLine('');
   messageType.fieldsArray.sort((fieldA, fieldB) => fieldA.id - fieldB.id);
   for (const field of messageType.fieldsArray) {
@@ -437,7 +437,7 @@ function generateMessageInterfaces(formatter: TextFormatter, messageType: Protob
 }
 
 function generateEnumInterface(formatter: TextFormatter, enumType: Protobuf.Enum, options: GeneratorOptions, nameOverride?: string) {
-  formatter.writeLine(`// Original file: ${enumType.filename}`);
+  formatter.writeLine(`// Original file: ${(enumType.filename ?? 'null')?.replace(/\\/g, '/')}`);
   formatter.writeLine('');
   if (options.includeComments) {
     formatComment(formatter, enumType.comment);
@@ -503,7 +503,7 @@ function generateServiceClientInterface(formatter: TextFormatter, serviceType: P
       }
       const requestType = getTypeInterfaceName(method.resolvedRequestType!);
       const responseType = getTypeInterfaceName(method.resolvedResponseType!) + '__Output';
-      const callbackType = `(error?: grpc.ServiceError, result?: ${responseType}) => void`;
+      const callbackType = `grpc.requestCallback<${responseType}>`;
       if (method.requestStream) {
         if (method.responseStream) {
           // Bidi streaming
@@ -590,7 +590,7 @@ function generateServiceDefinitionInterface(formatter: TextFormatter, serviceTyp
 }
 
 function generateServiceInterfaces(formatter: TextFormatter, serviceType: Protobuf.Service, options: GeneratorOptions) {
-  formatter.writeLine(`// Original file: ${serviceType.filename}`);
+  formatter.writeLine(`// Original file: ${(serviceType.filename ?? 'null')?.replace(/\\/g, '/')}`);
   formatter.writeLine('');
   const grpcImportPath = options.grpcLib.startsWith('.') ? getPathToRoot(serviceType) + options.grpcLib : options.grpcLib;
   formatter.writeLine(`import type * as grpc from '${grpcImportPath}'`);
@@ -767,7 +767,7 @@ async function writeAllFiles(protoFiles: string[], options: GeneratorOptions) {
   }
 }
 
-function runScript() {
+async function runScript() {
   const argv = yargs
     .parserConfiguration({
       'parse-positional-numbers': false

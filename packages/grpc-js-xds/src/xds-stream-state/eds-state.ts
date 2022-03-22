@@ -18,7 +18,8 @@
 import { experimental, logVerbosity, StatusObject } from "@grpc/grpc-js";
 import { isIPv4, isIPv6 } from "net";
 import { ClusterLoadAssignment__Output } from "../generated/envoy/config/endpoint/v3/ClusterLoadAssignment";
-import { Watcher, XdsStreamState } from "./xds-stream-state";
+import { Any__Output } from "../generated/google/protobuf/Any";
+import { HandleResponseResult, RejectedResourceEntry, ResourcePair, Watcher, XdsStreamState } from "./xds-stream-state";
 
 const TRACER_NAME = 'xds_client';
 
@@ -128,42 +129,40 @@ export class EdsState implements XdsStreamState<ClusterLoadAssignment__Output> {
     return true;
   }
 
-  /**
-   * Given a list of edsServiceNames (which may actually be the cluster name),
-   * for each watcher watching a name not on the list, call that watcher's
-   * onResourceDoesNotExist method.
-   * @param allClusterNames
-   */
-  handleMissingNames(allEdsServiceNames: Set<string>) {
-    for (const [edsServiceName, watcherList] of this.watchers.entries()) {
-      if (!allEdsServiceNames.has(edsServiceName)) {
-        trace('Reporting EDS resource does not exist for edsServiceName ' + edsServiceName);
-        for (const watcher of watcherList) {
-          watcher.onResourceDoesNotExist();
-        }
+  handleResponses(responses: ResourcePair<ClusterLoadAssignment__Output>[], isV2: boolean): HandleResponseResult {
+    const validResponses: ClusterLoadAssignment__Output[] = [];
+    let result: HandleResponseResult = {
+      accepted: [],
+      rejected: [],
+      missing: []
+    }
+    for (const {resource, raw} of responses) {
+      if (this.validateResponse(resource)) {
+        validResponses.push(resource);
+        result.accepted.push({
+          name: resource.cluster_name,
+          raw: raw});
+      } else {
+        trace('EDS validation failed for message ' + JSON.stringify(resource));
+        result.rejected.push({
+          name: resource.cluster_name, 
+          raw: raw,
+          error: `ClusterLoadAssignment validation failed for resource ${resource.cluster_name}`
+        });
       }
     }
-  }
-
-  handleResponses(responses: ClusterLoadAssignment__Output[], isV2: boolean) {
-    for (const message of responses) {
-      if (!this.validateResponse(message)) {
-        trace('EDS validation failed for message ' + JSON.stringify(message));
-        return 'EDS Error: ClusterLoadAssignment validation failed';
-      }
-    }
-    this.latestResponses = responses;
+    this.latestResponses = validResponses;
     this.latestIsV2 = isV2;
     const allClusterNames: Set<string> = new Set<string>();
-    for (const message of responses) {
+    for (const message of validResponses) {
       allClusterNames.add(message.cluster_name);
       const watchers = this.watchers.get(message.cluster_name) ?? [];
       for (const watcher of watchers) {
         watcher.onValidUpdate(message, isV2);
       }
     }
-    trace('Received EDS updates for cluster names ' + Array.from(allClusterNames));
-    return null;
+    trace('Received EDS updates for cluster names [' + Array.from(allClusterNames) + ']');
+    return result;
   }
 
   reportStreamError(status: StatusObject): void {

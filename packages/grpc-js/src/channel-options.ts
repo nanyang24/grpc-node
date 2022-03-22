@@ -15,6 +15,8 @@
  *
  */
 
+import { CompressionAlgorithms } from './compression-algorithms';
+
 /**
  * An interface that contains options used when initializing a Channel instance.
  */
@@ -36,6 +38,8 @@ export interface ChannelOptions {
   'grpc.enable_http_proxy'?: number;
   'grpc.http_connect_target'?: string;
   'grpc.http_connect_creds'?: string;
+  'grpc.default_compression_algorithm'?: CompressionAlgorithms;
+  'grpc.enable_channelz'?: number;
   'grpc-node.max_session_memory'?: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
@@ -61,6 +65,7 @@ export const recognizedOptions = {
   'grpc.max_send_message_length': true,
   'grpc.max_receive_message_length': true,
   'grpc.enable_http_proxy': true,
+  'grpc.enable_channelz': true,
   'grpc-node.max_session_memory': true,
 };
 
