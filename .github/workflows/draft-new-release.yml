@@ -111,7 +111,7 @@ jobs:
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PR }}
-          SLACK_CHANNEL: make-world-better
+          SLACK_CHANNEL: test-slack-notifier-1
           SLACK_USERNAME: "FE Deployment"
           SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
           SLACK_TITLE: "The new release has been drafted: `${{ github.event.inputs.version }}`"
@@ -126,7 +126,7 @@ jobs:
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_TEAM }}
-          SLACK_CHANNEL: make-world-better
+          SLACK_CHANNEL: test-slack-notifier-2
           SLACK_USERNAME: "FE Deployment"
           SLACK_ICON: https://avatars.slack-edge.com/2022-03-16/3250227561252_91f64a484fe3550929bf_48.png
           SLACK_TITLE: "The new release has been drafted:"
